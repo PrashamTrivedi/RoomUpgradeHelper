@@ -4,7 +4,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 
 
-class RoomUpgradeHelperPlugin: Plugin<Project> {
+open class RoomUpgradeHelperPlugin: Plugin<Project> {
     override fun apply(project: Project) {
         val extension = project.extensions.run {
             create("roomUpgrade",Configuration::class.java)
@@ -16,7 +16,10 @@ class RoomUpgradeHelperPlugin: Plugin<Project> {
         }
 
         with(project.tasks){
-            //TODO Create class and map it with our logic
+            create("getStatements",MigrationTask::class.java){
+                it.group = "Room Upgrade"
+                it.description = "Get migration queries when upgrading versions"
+            }
         }
     }
 }
