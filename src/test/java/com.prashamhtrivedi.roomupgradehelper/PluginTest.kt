@@ -19,12 +19,13 @@ class PluginTest {
 
     lateinit var settingsFile: File
     lateinit var buildFile: File
+    private val pluginName = "com.prashamhtrivedi.roomupgradehelper"
 
 
     @Before
     fun setup() {
         settingsFile = testProjectDir.newFile("settings.gradle")
-        buildFile = testProjectDir.newFile("build.gradle")
+        buildFile = testProjectDir.newFile("build.gradle.kts")
     }
 
 
@@ -33,18 +34,33 @@ class PluginTest {
 
         buildFile.appendText("""
             plugins{
-                id 'com.prashamhtrivedi.roomupgradehelper'
+                id("com.prashamhtrivedi.roomupgradehelper")
             }
-        """)
+        """.trimIndent())
         val buildResult = GradleRunner.create()
                 .withProjectDir(testProjectDir.root)
                 .withPluginClasspath()
                 .build()
 
+        print(buildResult.tasks)
+
         assert(buildResult.output.indexOf("Whoa....")!=-1){
             "Your plugin should print something"
         }
 
+    }
+
+
+    @Test
+    fun testAppliedPluginHasTask(){
+        val project = ProjectBuilder.builder().build()
+        with(project){
+            pluginManager.apply(RoomUpgradeHelperPlugin::class.java)
+
+            assert(tasks.findByName("getStatements")!=null){
+                "Adding project should have task called `getStatements`"
+            }
+        }
     }
 
 

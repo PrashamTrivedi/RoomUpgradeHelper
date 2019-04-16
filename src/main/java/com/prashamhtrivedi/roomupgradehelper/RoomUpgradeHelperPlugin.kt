@@ -11,8 +11,8 @@ open class RoomUpgradeHelperPlugin: Plugin<Project> {
         }
 
         project.afterEvaluate {
-            if(extension.path.isEmpty()) return@afterEvaluate
             println("Whoa....")
+//            if(extension.path.isEmpty()) return@afterEvaluate
         }
 
         with(project.tasks){

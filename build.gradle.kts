@@ -38,7 +38,7 @@ dependencies {
 }
 
 
-(tasks.findByName("test") as Test).useJUnitPlatform()
+//(tasks.findByName("test") as Test).useJUnitPlatform()
 
 group = "com.prashamhtrivedi"
 version = "0.1"
