@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <bytecodeTargetLevel>
+      <module name="com.prashamhtrivedi.roomupgradehelper.roomUpgradeHelper.main" target="1.8" />
+      <module name="com.prashamhtrivedi.roomupgradehelper.roomUpgradeHelper.test" target="1.8" />
+      <module name="in.prashamhtrivedi.room_upgrade_helper.main" target="1.8" />
+      <module name="in.prashamhtrivedi.room_upgrade_helper.test" target="1.8" />
+      <module name="in.prashamhtrivedi.roomUpgradeHelper.main" target="1.8" />
+      <module name="in.prashamhtrivedi.roomUpgradeHelper.test" target="1.8" />
+    </bytecodeTargetLevel>
+  </component>
+</project>
