@@ -32,7 +32,7 @@ class PluginTest {
     @Test
     fun testApplyAndEnableShouldPrint(){
 
-        buildFile.appendText("""
+        buildFile.writeText("""
             plugins{
                 id("com.prashamhtrivedi.roomupgradehelper")
             }
