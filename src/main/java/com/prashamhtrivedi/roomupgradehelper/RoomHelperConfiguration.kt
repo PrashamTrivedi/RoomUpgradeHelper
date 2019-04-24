@@ -1,5 +1,4 @@
 package com.prashamhtrivedi.roomupgradehelper
 
-open class RoomHelperConfiguration {
-    var path:String=""
+open class RoomHelperConfiguration(var jsonPath: String = "") {
 }

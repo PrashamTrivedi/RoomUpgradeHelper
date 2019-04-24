@@ -12,7 +12,7 @@ open class RoomUpgradeHelperPlugin: Plugin<Project> {
 
         project.afterEvaluate {
             println("Whoa....")
-            if(extension.path.isEmpty()) return@afterEvaluate
+            if(extension.jsonPath.isEmpty()) return@afterEvaluate
         }
 
         with(project.tasks){

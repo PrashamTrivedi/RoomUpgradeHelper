@@ -22,9 +22,11 @@ open class MigrationTask : DefaultTask() {
     var output = project.file("${project.buildDir}/roomupgradehelper/output.txt")
 
     @InputFile
-    var input = project.file("${project.buildDir}/roomupgradehelper/inputDir.txt").apply { parentFile.mkdirs()
+    var input = project.file("${project.buildDir}/roomupgradehelper/inputDir.txt").apply {
+        parentFile.mkdirs()
         createNewFile()
-        writeText("") }
+        writeText("")
+    }
 
     val moshi = Moshi.Builder().build()
 
@@ -36,42 +38,51 @@ open class MigrationTask : DefaultTask() {
             findByName("roomUpgrade") as RoomHelperConfiguration
         }
 
-        if (!extension.path.isBlank()) {
+        if (!extension.jsonPath.isBlank()) {
+            output.parentFile.mkdirs()
             output.createNewFile()
-            output.writeText("========")
-            val dbSchemas = getSchemas()
+            val dbSchemas = getSchemas(extension.jsonPath)
 
             dbSchemas.forEach {
                 input.appendText("${it.database?.version}")
             }
 
             dbSchemas.reduce { acc, dbSchema ->
+                println("From version ${acc.database?.version} to ${dbSchema.database?.version}")
+                output.writeText("From version ${acc.database?.version} to ${dbSchema.database?.version}")
+                output.writeText("========")
+                println("=========")
                 if (acc.database != null && dbSchema.database != null) {
                     val migrationStatement = getMigrationStatement(acc.database, dbSchema.database)
-                    for(statement in migrationStatement){
+                    for (statement in migrationStatement) {
                         output.writeText(statement)
+                        println(statement)
                         output.writeText("\n")
                     }
                 }
+                output.writeText("\n")
+                println()
                 dbSchema
             }
 
-        }else{
+        } else {
             throw IllegalArgumentException("roomUpgrade.path should be set")
         }
     }
 
 
-    private fun readFileJson(fileName: String): String = File(fileName).readText()
+    private fun readJson(file: File): String = file.readText()
 
-    private fun convertDbSchemaFromJson(json:String): DbSchema? =
+    private fun convertDbSchemaFromJson(json: String): DbSchema? =
             moshi.adapter<DbSchema>(DbSchema::class.java).fromJson(json)
 
-    private fun getSchemas(): MutableList<DbSchema> {
-
-
+    private fun getSchemas(path: String): MutableList<DbSchema> {
         val tableInfoArray = mutableListOf<DbSchema>()
-        path.map { getTableInfoFromJson("$name/$it") }.forEach { dbSchema ->
+        val pathDir = File(path)
+        if (!pathDir.isDirectory) throw IllegalArgumentException("The path should be a directory, it's a file")
+        pathDir.listFiles().map {
+            getTableInfo(it)
+        }.forEach { dbSchema ->
             dbSchema?.let {
                 tableInfoArray += it
             }
@@ -80,16 +91,10 @@ open class MigrationTask : DefaultTask() {
 
     }
 
-    private fun getTableJson(fileName: String): String = readFileJson(fileName = fileName)
-
-    private fun getTableInfoFromJson(fileName: String): DbSchema? {
-        val jsonString = getTableJson(fileName)
+    private fun getTableInfo(file: File): DbSchema? {
+        val jsonString = readJson(file)
         return convertDbSchemaFromJson(jsonString)
     }
-
-
-
-
 
     private fun getMigrationStatement(first: Database, second: Database): MutableList<String> {
 
