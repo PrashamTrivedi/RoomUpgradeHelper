@@ -7,12 +7,12 @@ import org.gradle.api.Project
 open class RoomUpgradeHelperPlugin: Plugin<Project> {
     override fun apply(project: Project) {
         val extension = project.extensions.run {
-            create("roomUpgrade",Configuration::class.java)
+            create("roomUpgrade",RoomHelperConfiguration::class.java)
         }
 
         project.afterEvaluate {
             println("Whoa....")
-//            if(extension.path.isEmpty()) return@afterEvaluate
+            if(extension.path.isEmpty()) return@afterEvaluate
         }
 
         with(project.tasks){

@@ -30,7 +30,7 @@ class PluginTest {
 
 
     @Test
-    fun testApplyAndEnableShouldPrint(){
+    fun `test if plugin is applied it should print message`(){
 
         buildFile.writeText("""
             plugins{
@@ -43,6 +43,7 @@ class PluginTest {
                 .build()
 
         print(buildResult.tasks)
+        print(buildResult.output)
 
         assert(buildResult.output.indexOf("Whoa....")!=-1){
             "Your plugin should print something"
@@ -50,9 +51,35 @@ class PluginTest {
 
     }
 
+    @Test
+    fun `test if plugin is applied without path it should throw error`(){
+        buildFile.writeText("""
+            plugins{
+                id("com.prashamhtrivedi.roomupgradehelper")
+            }
+
+            roomUpgrade {
+            }
+        """.trimIndent())
+
+        val buildResult = GradleRunner.create()
+                .withProjectDir(testProjectDir.root)
+                .withPluginClasspath()
+                .withArguments("getStatements")
+                .buildAndFail()
+
+        print(buildResult.tasks)
+        println(buildResult.output)
+
+        assert(buildResult.output.contains("roomUpgrade.path should be set")){
+            "Expecting an error message in absence of path"
+        }
+    }
+
+
 
     @Test
-    fun testAppliedPluginHasTask(){
+    fun `test if plugin is applied it has a task named getStatements`(){
         val project = ProjectBuilder.builder().build()
         with(project){
             pluginManager.apply(RoomUpgradeHelperPlugin::class.java)
@@ -64,16 +91,5 @@ class PluginTest {
     }
 
 
-
-    @Throws(IOException::class)
-    private fun writeFile(destination: File, content: String) {
-        var output: BufferedWriter? = null
-        try {
-            output = BufferedWriter(FileWriter(destination))
-            output.write(content)
-        } finally {
-            output?.close()
-        }
-    }
 
 }

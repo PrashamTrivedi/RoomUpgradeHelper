@@ -8,6 +8,7 @@ import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import java.io.File
+import java.lang.IllegalArgumentException
 
 //To make this class work, schema must be exported.
 // To export the schema, follow Prerequisites section from below link
@@ -21,20 +22,29 @@ open class MigrationTask : DefaultTask() {
     var output = project.file("${project.buildDir}/roomupgradehelper/output.txt")
 
     @InputFile
-    var input = project.file("${project.buildDir}/roomupgradehelper/inputDir.txt")
+    var input = project.file("${project.buildDir}/roomupgradehelper/inputDir.txt").apply { parentFile.mkdirs()
+        createNewFile()
+        writeText("") }
 
     val moshi = Moshi.Builder().build()
 
     @TaskAction
     fun action() {
+
+
         val extension = project.extensions.run {
-            findByName("roomUpgrade") as Configuration
+            findByName("roomUpgrade") as RoomHelperConfiguration
         }
 
         if (!extension.path.isBlank()) {
             output.createNewFile()
             output.writeText("========")
             val dbSchemas = getSchemas()
+
+            dbSchemas.forEach {
+                input.appendText("${it.database?.version}")
+            }
+
             dbSchemas.reduce { acc, dbSchema ->
                 if (acc.database != null && dbSchema.database != null) {
                     val migrationStatement = getMigrationStatement(acc.database, dbSchema.database)
@@ -46,6 +56,8 @@ open class MigrationTask : DefaultTask() {
                 dbSchema
             }
 
+        }else{
+            throw IllegalArgumentException("roomUpgrade.path should be set")
         }
     }
 
