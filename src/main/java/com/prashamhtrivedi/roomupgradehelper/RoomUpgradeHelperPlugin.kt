@@ -16,9 +16,19 @@ open class RoomUpgradeHelperPlugin: Plugin<Project> {
         }
 
         with(project.tasks){
+
+            val inputTask = kotlin.run {
+                create("readInputs", ReadInputTask::class.java) {
+                    it.group = "Room Upgrade"
+                    it.description = "Prepares input for Statements"
+
+                }
+            }
+
             create("getStatements",MigrationTask::class.java){
                 it.group = "Room Upgrade"
                 it.description = "Get migration queries when upgrading versions"
+                it.dependsOn(inputTask)
             }
         }
     }

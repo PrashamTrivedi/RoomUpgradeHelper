@@ -4,7 +4,9 @@ import com.prashamhtrivedi.roomupgradehelper.data.Database
 import com.prashamhtrivedi.roomupgradehelper.data.DbSchema
 import com.squareup.moshi.Moshi
 import org.gradle.api.DefaultTask
+import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.InputFile
+import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import java.io.File
@@ -22,11 +24,8 @@ open class MigrationTask : DefaultTask() {
     var output = project.file("${project.buildDir}/roomupgradehelper/output.txt")
 
     @InputFile
-    var input = project.file("${project.buildDir}/roomupgradehelper/inputDir.txt").apply {
-        parentFile.mkdirs()
-        createNewFile()
-        writeText("")
-    }
+    var input = project.file("${project.buildDir}/roomupgradehelper/inputDir.txt")
+
 
     val moshi = Moshi.Builder().build()
 
@@ -38,35 +37,26 @@ open class MigrationTask : DefaultTask() {
             findByName("roomUpgrade") as RoomHelperConfiguration
         }
 
-        if (!extension.jsonPath.isBlank()) {
-            output.parentFile.mkdirs()
-            output.createNewFile()
-            val dbSchemas = getSchemas(extension.jsonPath)
+        output.parentFile.mkdirs()
+        output.createNewFile()
+        val dbSchemas = getSchemas(extension.jsonPath)
 
-            dbSchemas.forEach {
-                input.appendText("${it.database?.version}")
-            }
-
-            dbSchemas.reduce { acc, dbSchema ->
-                println("From version ${acc.database?.version} to ${dbSchema.database?.version}")
-                output.writeText("From version ${acc.database?.version} to ${dbSchema.database?.version}")
-                output.writeText("========")
-                println("=========")
-                if (acc.database != null && dbSchema.database != null) {
-                    val migrationStatement = getMigrationStatement(acc.database, dbSchema.database)
-                    for (statement in migrationStatement) {
-                        output.writeText(statement)
-                        println(statement)
-                        output.writeText("\n")
-                    }
+        dbSchemas.reduce { acc, dbSchema ->
+            println("From version ${acc.database?.version} to ${dbSchema.database?.version}")
+            output.writeText("From version ${acc.database?.version} to ${dbSchema.database?.version}")
+            output.writeText("========")
+            println("=========")
+            if (acc.database != null && dbSchema.database != null) {
+                val migrationStatement = getMigrationStatement(acc.database, dbSchema.database)
+                for (statement in migrationStatement) {
+                    output.writeText(statement)
+                    println(statement)
+                    output.writeText("\n")
                 }
-                output.writeText("\n")
-                println()
-                dbSchema
             }
-
-        } else {
-            throw IllegalArgumentException("roomUpgrade.path should be set")
+            output.writeText("\n")
+            println()
+            dbSchema
         }
     }
 
@@ -79,8 +69,8 @@ open class MigrationTask : DefaultTask() {
     private fun getSchemas(path: String): MutableList<DbSchema> {
         val tableInfoArray = mutableListOf<DbSchema>()
         val pathDir = File(path)
-        if (!pathDir.isDirectory) throw IllegalArgumentException("The path should be a directory, it's a file")
-        pathDir.listFiles().map {
+        val files = pathDir.listFiles()
+        files.map {
             getTableInfo(it)
         }.forEach { dbSchema ->
             dbSchema?.let {
@@ -158,4 +148,25 @@ open class MigrationTask : DefaultTask() {
     }
 
 
+}
+
+open class ReadInputTask : DefaultTask() {
+    @TaskAction
+    fun writeInput() {
+        val inputFile = project.file("${project.buildDir}/roomupgradehelper/inputDir.txt").apply {
+            parentFile.mkdirs()
+            createNewFile()
+            writeText("")
+        }
+
+        val input = (project.extensions.findByName("roomUpgrade") as RoomHelperConfiguration).jsonPath
+        if(input.isBlank()) throw IllegalArgumentException("roomUpgrade.path should be set")
+        val pathDir = File(input)
+        if (!pathDir.isDirectory) throw IllegalArgumentException("The path should be a directory, it's a file")
+        val files = pathDir.listFiles()
+        if (files.isEmpty()) throw IllegalArgumentException("You don't have any files ready for migration. Please add database schema json files in $path, or point to proper path")
+        if (files.size == 1) throw IllegalArgumentException("More than one versions are needed to upgrade")
+
+        inputFile.writeText(files.joinToString("\n") { it.name })
+    }
 }

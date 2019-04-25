@@ -48,6 +48,7 @@ val gradlePlugin = configure<GradlePluginDevelopmentExtension> {
             id = "com.prashamhtrivedi.roomupgradehelper"
             implementationClass = "com.prashamhtrivedi.roomupgradehelper.RoomUpgradeHelperPlugin"
             displayName = "Room Upgrade Helper"
+            description="A Gradle plugin to help you finding out right queries when you upgrade your room schemas."
         }
     }
 }
