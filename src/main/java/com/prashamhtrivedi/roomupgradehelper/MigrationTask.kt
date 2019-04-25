@@ -5,6 +5,7 @@ import com.prashamhtrivedi.roomupgradehelper.data.DbSchema
 import com.squareup.moshi.Moshi
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.InputFile
+import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import java.io.File
@@ -28,6 +29,9 @@ open class MigrationTask : DefaultTask() {
         writeText("")
     }
 
+    @InputFiles
+    var inputFiles = project.buildDir.listFiles()
+
     val moshi = Moshi.Builder().build()
 
     @TaskAction
@@ -42,10 +46,6 @@ open class MigrationTask : DefaultTask() {
             output.parentFile.mkdirs()
             output.createNewFile()
             val dbSchemas = getSchemas(extension.jsonPath)
-
-            dbSchemas.forEach {
-                input.appendText("${it.database?.version}")
-            }
 
             dbSchemas.reduce { acc, dbSchema ->
                 println("From version ${acc.database?.version} to ${dbSchema.database?.version}")
@@ -65,6 +65,7 @@ open class MigrationTask : DefaultTask() {
                 dbSchema
             }
 
+            println(input.readText())
         } else {
             throw IllegalArgumentException("roomUpgrade.path should be set")
         }
@@ -80,7 +81,14 @@ open class MigrationTask : DefaultTask() {
         val tableInfoArray = mutableListOf<DbSchema>()
         val pathDir = File(path)
         if (!pathDir.isDirectory) throw IllegalArgumentException("The path should be a directory, it's a file")
-        pathDir.listFiles().map {
+        val files = pathDir.listFiles()
+        println(files.map { it.name })
+        inputFiles = pathDir.listFiles()
+        input.appendText(files.joinToString(separator = "\n") { it.name })
+        if(files.isEmpty()) throw IllegalArgumentException("You don't have any files ready for migration. Please add database schema json files in $path, or point to proper path")
+        if(files.size==1) throw IllegalArgumentException("More than one versions are needed to upgrade")
+        files.map {
+            println(it.name)
             getTableInfo(it)
         }.forEach { dbSchema ->
             dbSchema?.let {
