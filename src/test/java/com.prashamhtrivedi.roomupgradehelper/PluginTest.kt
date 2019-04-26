@@ -140,9 +140,10 @@ class PluginTest {
         """.trimIndent())
 
 
-        val sourceDir = File(testProjectDir.root,"source").apply {
+        File(testProjectDir.root,"source").apply {
             mkdirs()
         }
+
 
 
         val buildResult = GradleRunner.create()
